@@ -1,0 +1,32 @@
+{
+  "name": "grok-web-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.5",
+    "@codemirror/lang-markdown": "^6.3.2",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.0",
+    "codemirror": "^6.0.1",
+    "@replit/codemirror-vim": "^6.2.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@vitejs/plugin-react": "^4.5.2",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.0"
+  }
+}

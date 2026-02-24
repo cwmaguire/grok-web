@@ -1,0 +1,6 @@
+{
+  "apiKey": "",
+  "model": "grok-4-1-fast-reasoning",
+  "dbPath": "./data/grok-web.db",
+  "mcpServers": {}
+}
