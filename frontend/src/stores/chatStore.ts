@@ -78,20 +78,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
   ws: null,
 
   loadConversations: async () => {
-    const res = await fetch(`${API_BASE}/conversations`)
-    const data = await res.json()
-    set({ conversations: data })
+    try {
+      const res = await fetch(`${API_BASE}/conversations`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data)) set({ conversations: data })
+    } catch {
+      // Backend not running yet
+    }
   },
 
   createConversation: async () => {
-    const res = await fetch(`${API_BASE}/conversations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'New Conversation' }),
-    })
-    const conv = await res.json()
-    set(s => ({ conversations: [conv, ...s.conversations] }))
-    get().selectConversation(conv.id)
+    try {
+      const res = await fetch(`${API_BASE}/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Conversation' }),
+      })
+      if (!res.ok) return
+      const conv = await res.json()
+      set(s => ({ conversations: [conv, ...s.conversations] }))
+      get().selectConversation(conv.id)
+    } catch {
+      // Backend not running yet
+    }
   },
 
   selectConversation: async (id: string) => {
@@ -99,7 +109,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // Load messages
     const res = await fetch(`${API_BASE}/conversations/${id}/messages`)
+    if (!res.ok) return
     const msgs = await res.json()
+    if (!Array.isArray(msgs)) return
 
     // Build display messages from DB messages
     const displayMessages: Message[] = []
