@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import os
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
@@ -13,12 +14,15 @@ from grok_web.config import Config
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a powerful AI coding assistant running in a browser-based development tool called grok-web. You have access to tools that let you interact with the local filesystem and run shell commands.
+SYSTEM_PROMPT_TEMPLATE = """You are a powerful AI coding assistant running in a browser-based development tool called grok-web. You have access to tools that let you interact with the local filesystem and run shell commands.
+
+Current working directory: {cwd}
 
 When the user asks you to perform tasks:
 - Use the available tools to read files, write files, search/replace in files, list directories, and run commands
 - Be thorough and precise in your tool usage
 - Show your work by explaining what you're doing
+- Use absolute paths or paths relative to the current working directory
 
 You can make multiple tool calls in sequence to accomplish complex tasks."""
 
@@ -51,9 +55,9 @@ def _build_tool_definitions(tool_schemas: list[dict]) -> list:
     return tools
 
 
-def _build_messages(history: list[dict]) -> list:
+def _build_messages(history: list[dict], cwd: str) -> list:
     """Convert stored message dicts back to xai_sdk message objects."""
-    msgs = [system(SYSTEM_PROMPT)]
+    msgs = [system(SYSTEM_PROMPT_TEMPLATE.format(cwd=cwd))]
     for msg in history:
         role = msg["role"]
         if role == "user":
@@ -73,9 +77,10 @@ def _build_messages(history: list[dict]) -> list:
 
 
 class LLMClient:
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, cwd: str | None = None):
         self._config = config
         self._client = Client(api_key=config.api_key)
+        self._cwd = cwd or os.getcwd()
 
     def close(self):
         pass
@@ -94,7 +99,7 @@ class LLMClient:
 
         def _run_stream():
             try:
-                messages = _build_messages(history)
+                messages = _build_messages(history, self._cwd)
                 tools = _build_tool_definitions(tool_schemas) if tool_schemas else None
 
                 kwargs = {

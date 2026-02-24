@@ -236,7 +236,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
 
     ws.onclose = () => {
-      set({ ws: null })
+      set({ ws: null, isStreaming: false })
+      // Auto-reconnect unless intentionally disconnected via disconnectWs
+      if (!(ws as any)._intentionalClose) {
+        setTimeout(() => {
+          const current = get()
+          if (current.conversationId === conversationId && !current.ws) {
+            get().connectWs(conversationId)
+          }
+        }, 1500)
+      }
     }
 
     set({ ws })
@@ -245,6 +254,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   disconnectWs: () => {
     const { ws } = get()
     if (ws) {
+      (ws as any)._intentionalClose = true
       ws.close()
       set({ ws: null })
     }
