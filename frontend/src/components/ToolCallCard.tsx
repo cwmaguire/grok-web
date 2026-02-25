@@ -10,7 +10,7 @@ interface ToolCallEvent {
 }
 
 export default function ToolCallCard({ tc }: { tc: ToolCallEvent }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
   const statusColor = tc.status === 'running'
     ? '#d29922'

@@ -8,7 +8,8 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
 from xai_sdk import Client
-from xai_sdk.chat import user, system, assistant, tool as make_tool, tool_result
+from xai_sdk.chat import user, system, assistant, tool as make_tool, tool_result, text
+from xai_sdk.proto import chat_pb2
 
 from grok_web.config import Config
 
@@ -64,8 +65,24 @@ def _build_messages(history: list[dict], cwd: str) -> list:
             msgs.append(user(msg["content"]))
         elif role == "assistant":
             if msg.get("tool_calls"):
-                # Assistant message with tool calls - append as assistant with content
-                msgs.append(assistant(msg.get("content") or ""))
+                # Build protobuf message directly to include tool_calls
+                tool_calls = []
+                for tc in msg["tool_calls"]:
+                    tool_calls.append(chat_pb2.ToolCall(
+                        id=tc["id"],
+                        type=chat_pb2.ToolCallType.TOOL_CALL_TYPE_CLIENT_SIDE_TOOL,
+                        status=chat_pb2.ToolCallStatus.TOOL_CALL_STATUS_COMPLETED,
+                        function=chat_pb2.FunctionCall(
+                            name=tc["name"],
+                            arguments=tc["arguments"] if isinstance(tc["arguments"], str) else json.dumps(tc["arguments"]),
+                        ),
+                    ))
+                content_parts = [text(msg["content"])] if msg.get("content") else []
+                msgs.append(chat_pb2.Message(
+                    role=chat_pb2.MessageRole.ROLE_ASSISTANT,
+                    content=content_parts,
+                    tool_calls=tool_calls,
+                ))
             else:
                 msgs.append(assistant(msg.get("content") or ""))
         elif role == "tool":

@@ -274,8 +274,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       streamingContent: '',
       isStreaming: true,
       currentTurn: 1,
-      toolCalls: [],
-      thinkingChunks: [],
     }))
 
     ws.send(JSON.stringify({ type: 'user_message', content }))

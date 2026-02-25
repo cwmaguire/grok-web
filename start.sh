@@ -16,7 +16,7 @@ trap cleanup EXIT INT TERM
 # Start backend
 echo "Starting backend..."
 cd "$DIR/backend"
-uv run uvicorn grok_web.main:app --reload --port 8000 &
+uv run uvicorn grok_web.main:app --reload --port 8111 &
 BACKEND_PID=$!
 
 # Start frontend
@@ -28,7 +28,7 @@ FRONTEND_PID=$!
 echo ""
 echo "grok-web running:"
 echo "  Frontend: http://localhost:5173"
-echo "  Backend:  http://localhost:8000"
+echo "  Backend:  http://localhost:8111"
 echo ""
 echo "Press Ctrl+C to stop."
 

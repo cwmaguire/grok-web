@@ -9,11 +9,33 @@ export default function App() {
   const { conversationId, loadConversations, createConversation } = useChatStore()
 
   useEffect(() => {
-    loadConversations().then(() => {
-      if (!useChatStore.getState().conversationId) {
-        createConversation()
+    let cancelled = false
+    const { selectConversation } = useChatStore.getState()
+
+    async function init() {
+      // Retry until backend is reachable (handles restart race)
+      while (!cancelled) {
+        await loadConversations()
+        const state = useChatStore.getState()
+
+        // If we loaded existing conversations, select the most recent one
+        if (state.conversations.length > 0 && !state.conversationId) {
+          await selectConversation(state.conversations[0].id)
+          break
+        }
+        if (state.conversationId) break
+
+        // No existing conversations — try creating one
+        await createConversation()
+        if (useChatStore.getState().conversationId) break
+
+        // Backend not ready yet, wait and retry
+        await new Promise(r => setTimeout(r, 1000))
       }
-    })
+    }
+
+    init()
+    return () => { cancelled = true }
   }, [])
 
   return (
